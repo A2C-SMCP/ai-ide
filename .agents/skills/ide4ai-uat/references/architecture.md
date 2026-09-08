@@ -50,6 +50,11 @@ run_inspector.py --> npx Inspector Web --> uv run ide4ai-mcp (stdio)
 
 每个场景使用全新的运行目录。跨 Inspector 重启场景可以在同一次运行内复用该目录和注册表，但不得复用其他场景的状态。
 
-## 后续自动化边界
+## 确定性自动化入口
 
-当前 Codex 版本由 Skill 动态理解 Inspector UI 并调用 Playwright。等 smoke 稳定后，可以把稳定交互提炼为 Page Object 或 Playwright Test，但仍保留同一 manifest、隔离目录和场景契约。这样 AI 负责适应 UI 变化与诊断，确定性脚本负责重复执行与 CI 门禁，两者不会形成两套验收语义。
+`tests/uat/run.mjs` 统一完成准备、Inspector 启动、Playwright 浏览器、断言、截图、清理与报告。
+`tests/uat/inspector-page.mjs` 集中维护 UI 定位；`scenarios.mjs` 只描述业务步骤与预期。
+目前已自动化 smoke 和 Terminal 场景，其他场景继续使用同一契约由 Skill 驱动 Playwright。
+
+默认 smoke 验证通知后手动刷新；`--auto-refresh` 验证自动刷新。完整使用方法、失败自测与
+扩展规则见 [UAT README](../../../../tests/uat/README.md)。

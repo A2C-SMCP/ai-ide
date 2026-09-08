@@ -6,14 +6,14 @@
 
 | 场景 | 当前状态 | 审阅结论 |
 |---|---|---|
-| `smoke-dynamic-catalog` | 已有基线，本轮未重跑 | [ ] 符合 [ ] 调整 |
+| `smoke-dynamic-catalog` | 本轮确定性执行器 PASS（手动/自动刷新） | [ ] 符合 [ ] 调整 |
 | `project-code-edit-loop` | Inspector UI 实跑 PASS | [ ] 符合 [ ] 调整 |
-| `terminal-test-loop` | Inspector UI 实跑 PASS | [ ] 符合 [ ] 调整 |
-| `multi-project-switch` | 已定义，尚未实跑 | [ ] 符合 [ ] 调整 |
-| `restart-persistence` | 已定义，尚未实跑 | [ ] 符合 [ ] 调整 |
-| `terminal-resource-updates` | 已定义，尚未实跑 | [ ] 符合 [ ] 调整 |
-| `lsp-python-workflow` | 已定义，尚未实跑 | [ ] 符合 [ ] 调整 |
-| `project-guardrails` | 已定义，尚未实跑 | [ ] 符合 [ ] 调整 |
+| `terminal-test-loop` | 本轮确定性执行器 PASS | [ ] 符合 [ ] 调整 |
+| `multi-project-switch` | PR #36 已记录实跑 PASS，本轮未重跑 | [ ] 符合 [ ] 调整 |
+| `restart-persistence` | PR #36 已记录实跑 PASS，本轮未重跑 | [ ] 符合 [ ] 调整 |
+| `terminal-resource-updates` | PR #36 已记录实跑 PASS，本轮未重跑 | [ ] 符合 [ ] 调整 |
+| `lsp-python-workflow` | PR #36 已记录实跑 PASS，本轮未重跑 | [ ] 符合 [ ] 调整 |
+| `project-guardrails` | PR #36 已记录实跑 PASS，本轮未重跑 | [ ] 符合 [ ] 调整 |
 
 ## 统一验收路线与规则
 

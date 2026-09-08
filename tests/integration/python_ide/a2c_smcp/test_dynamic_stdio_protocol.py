@@ -245,6 +245,15 @@ async def test_stdio_tfbash_runtimes_are_isolated_per_project(tmp_path) -> None:
             first_open = await client.call_tool("shell_open", {})
             assert first_open.structuredContent is not None
             first_shell_id = first_open.structuredContent["shell_id"]
+            first_extra = await client.call_tool("shell_open", {})
+            assert not first_extra.isError and first_extra.structuredContent is not None
+            first_shell_ids = {first_shell_id, first_extra.structuredContent["shell_id"]}
+            assert len(first_shell_ids) == 2
+            first_output = await client.call_tool(
+                "shell_exec", {"shell_id": first_shell_id, "command": "echo FIRST_ONLY"}
+            )
+            assert not first_output.isError and first_output.structuredContent is not None
+            assert first_output.structuredContent["output"].strip() == "FIRST_ONLY"
 
             await client.call_tool("project_create", {"name": "second", "root_dir": str(second_root)})
             await client.call_tool("project_switch", {"name": "second"})
@@ -254,15 +263,29 @@ async def test_stdio_tfbash_runtimes_are_isolated_per_project(tmp_path) -> None:
             second_open = await client.call_tool("shell_open", {})
             assert second_open.structuredContent is not None
             assert second_open.structuredContent["cwd"] == str(second_root)
+            second_extra = await client.call_tool("shell_open", {})
+            assert not second_extra.isError and second_extra.structuredContent is not None
+            second_shell_ids = {second_open.structuredContent["shell_id"], second_extra.structuredContent["shell_id"]}
+            assert len(second_shell_ids) == 2 and first_shell_ids.isdisjoint(second_shell_ids)
+            second_output = await client.call_tool(
+                "shell_exec", {"shell_id": second_open.structuredContent["shell_id"], "command": "echo SECOND_ONLY"}
+            )
+            assert not second_output.isError and second_output.structuredContent is not None
+            assert second_output.structuredContent["output"].strip() == "SECOND_ONLY"
+            foreign_shell = await client.call_tool("shell_read", {"shell_id": first_shell_id})
+            assert foreign_shell.isError
 
             await client.call_tool("project_switch", {"name": "first"})
             first_list = await client.call_tool("shell_list", {})
             assert first_list.structuredContent is not None
             assert first_list.structuredContent["host"]["workspace_root"] == str(first_root)
-            assert [shell["shell_id"] for shell in first_list.structuredContent["shells"]] == [first_shell_id]
+            assert {shell["shell_id"] for shell in first_list.structuredContent["shells"]} == first_shell_ids
 
             await client.call_tool("terminal_close", {})
             await client.call_tool("project_switch", {"name": "second"})
+            second_list = await client.call_tool("shell_list", {})
+            assert not second_list.isError and second_list.structuredContent is not None
+            assert {shell["shell_id"] for shell in second_list.structuredContent["shells"]} == second_shell_ids
             await client.call_tool("terminal_close", {})
 
 
