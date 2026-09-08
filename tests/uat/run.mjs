@@ -41,6 +41,7 @@ console.log(`UAT ${name}: ${manifest.run_dir}`);
 const log = createWriteStream(`${manifest.artifacts_dir}/inspector.log`);
 let inspector, browser, context, page, ui;
 let tracingStarted = false;
+let interruptionAction = Promise.resolve();
 let tracked = [];
 let interrupted = false,
   closing = false;
@@ -54,13 +55,9 @@ for (const event of ["SIGINT", "SIGTERM"])
     if (inspector)
       tracked = [...new Set([...tracked, ...ownedProcesses(inspector.pid)])];
     if (page)
-      void (async () => {
-        try {
-          await ui?.disconnect();
-        } finally {
-          await page.close();
-        }
-      })().catch(() => {});
+      interruptionAction = page.close().catch((error) => {
+        report.interruptionError = String(error);
+      });
     else if (inspector) signal(-inspector.pid, "SIGINT");
   });
 const processes = () =>
@@ -208,6 +205,7 @@ try {
   await ui.connect(manifest.inspector.url);
   report.failureCategory = "product";
   await scenarios[name](ui, manifest);
+  checkInterrupted();
   if (args.includes("--inject-failure"))
     throw new Error("Intentional failure to verify UAT evidence and cleanup");
   report.status = "PASS";
@@ -228,6 +226,7 @@ try {
       .catch(() => {});
 } finally {
   closing = true;
+  await interruptionAction;
   if (inspector)
     tracked = [...new Set([...tracked, ...ownedProcesses(inspector.pid)])];
   if (page && !page.isClosed()) {
@@ -259,6 +258,15 @@ try {
     report.status = "FAIL";
   });
   log.end();
+  if (
+    interrupted &&
+    !report.cleanup.error &&
+    !report.cleanup.browserError &&
+    !report.traceError
+  ) {
+    report.status = "BLOCKED";
+    report.failureCategory = "interrupted";
+  }
   report.replay = `node tests/uat/run.mjs ${args.length ? args.join(" ") : name}`;
   report.screenshots = readdirSync(manifest.artifacts_dir).filter((name) =>
     name.endsWith(".png"),
