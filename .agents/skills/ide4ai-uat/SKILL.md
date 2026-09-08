@@ -25,6 +25,21 @@ description: "通过 MCP Inspector Web UI 和 Playwright 对本仓库的 ide4ai 
 3. 确认本次会话具有 Playwright 浏览器操作能力。若没有，停止并报告缺失依赖；不要退化为 Inspector CLI。
 4. 若用户指定了场景，先确认它出现在场景索引中，且对应文件存在于 `references/scenarios/`。
 
+## 确定性执行入口
+
+smoke 和 Terminal 场景优先使用已集中维护的 Page Object 执行器：
+
+```bash
+uv sync --group py
+npm ci --prefix tests/uat
+node tests/uat/run.mjs smoke-dynamic-catalog
+node tests/uat/run.mjs terminal-test-loop
+```
+
+执行器自动通过 Playwright 操作 Inspector Web UI，并保存截图、trace、日志、报告及清理结果。
+运行 `--auto-refresh` 可额外验收自动刷新；详见 [UAT README](../../../tests/uat/README.md)。
+其他场景继续按下述步骤使用 Playwright 工具执行，不使用直接 MCP 调用替代。
+
 ## 准备并启动
 
 从仓库根目录运行：

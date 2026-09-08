@@ -66,6 +66,7 @@ def _available_scenarios(root: Path) -> tuple[str, ...]:
 def _parse_args(available_scenarios: tuple[str, ...], argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--client-port", type=int, default=DEFAULT_CLIENT_PORT)
+    parser.add_argument("--auto-refresh", action="store_true", help="Enable Inspector automatic catalog refresh.")
     parser.add_argument(
         "--scenario",
         choices=available_scenarios,
@@ -116,6 +117,8 @@ def main(argv: list[str] | None = None) -> None:
                 "command": uv,
                 "args": [
                     "run",
+                    "--group",
+                    "py",
                     "ide4ai-mcp",
                     "--transport",
                     "stdio",
@@ -125,18 +128,20 @@ def main(argv: list[str] | None = None) -> None:
                 "env": {"PYTHONUNBUFFERED": "1"},
                 "cwd": str(root),
                 "protocolEra": "legacy",
-                "autoRefreshOnListChanged": False,
+                "autoRefreshOnListChanged": args.auto_refresh,
                 "connectionTimeout": 30_000,
                 "requestTimeout": 30_000,
             }
         }
     }
     config_path.write_text(json.dumps(server_config, indent=2) + "\n", encoding="utf-8")
+    config_path.chmod(0o400)
 
     token = secrets.token_urlsafe(32)
     manifest = {
         "schema_version": 1,
         "scenario": args.scenario,
+        "auto_refresh": args.auto_refresh,
         "run_dir": str(run_dir),
         "workspace_dir": str(workspace_dir),
         "artifacts_dir": str(artifacts_dir),
@@ -163,6 +168,7 @@ def main(argv: list[str] | None = None) -> None:
     }
     manifest_path = run_dir / "run-manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    manifest_path.chmod(0o600)
     print(json.dumps(manifest, indent=2))
 
 

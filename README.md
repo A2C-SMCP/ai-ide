@@ -274,3 +274,10 @@ pytest -k "your_case" -v   # 按需选择
 ---
 
 **如果这个项目对你有帮助，请给个 ⭐️ Star！**
+
+### 多项目与 Inspector 验收
+
+完整验收映射见 [多项目验收说明](docs/projects-acceptance.md)。
+执行 `uv sync --group py` 安装锁定的 Python LSP 后，运行 `uv run --group py poe check`
+和 `uv run --group py poe test`。Inspector Web 的确定性 Playwright 入口、自动刷新模式、
+失败证据与进程清理说明见 [UAT README](tests/uat/README.md)。
